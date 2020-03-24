@@ -144,27 +144,27 @@ class RethinkDbPublisher(
 
     private fun createTaskEntries(report: ExecutionReport): List<Pair<String, Any>> {
         val taskCustomProperties = getCustomProperties(report.customProperties.taskProperties)
+
         val list = mutableListOf<Pair<String, Any>>()
         taskCustomProperties.forEach {
             it.entries.forEach {
                 list.add(Pair(it.key, it.value))
             }
         }
-        val list2 = mutableListOf<Pair<String, Any>>()
-        val taskInfoProperties = report.tasks?.forEach { task ->
+        report.tasks?.forEach { task ->
 
-            list2.add(Pair("state", task.state.name))
-            list2.add(Pair("module", task.module))
-            list2.add(Pair("time", System.currentTimeMillis()))
-            list2.add(Pair("rootNode", task.rootNode.toString()))
-            list2.add(Pair("task", task.taskPath))
-            list2.add(Pair("workerId", task.workerId))
-            list2.add(Pair("value", task.ms))
-            list2.add(Pair("critical", task.critical.toString()))
+            list.add(Pair("state", task.state.name))
+            list.add(Pair("module", task.module))
+            list.add(Pair("time", System.currentTimeMillis()))
+            list.add(Pair("rootNode", task.rootNode.toString()))
+            list.add(Pair("task", task.taskPath))
+            list.add(Pair("workerId", task.workerId))
+            list.add(Pair("value", task.ms))
+            list.add(Pair("critical", task.critical.toString()))
 
 
-        } ?: emptyList()
-        return list + list2
+        }
+        return list
     }
 
     private fun getCustomProperties(taskProperties: MutableMap<String, String>): List<Map<String, Any>> {
