@@ -110,7 +110,7 @@ class InfluxDbPublisher(
     }
 
     private fun createTaskPoints(report: ExecutionReport): List<Point>? {
-        val measurements = report.tasks?.map { task ->
+        return report.tasks?.map { task ->
             Point.measurement(influxDbPublisherConfiguration.taskMetricName)
                 .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                 .tag("state", task.state.name)
@@ -127,7 +127,6 @@ class InfluxDbPublisher(
                 .addField("value", task.ms)
                 .build()
         }
-        return measurements
     }
 
     private fun createBuildPoint(report: ExecutionReport): Point {
@@ -135,8 +134,12 @@ class InfluxDbPublisher(
         return Point.measurement(influxDbPublisherConfiguration.buildMetricName)
             .time(report.endMs?.toLong() ?: System.currentTimeMillis(), TimeUnit.MILLISECONDS)
             .apply {
-                metricsProvider.createBuildPoint().map {
-                    addField(it.first, it.second)
+                metricsProvider.get().forEach {
+                    when (it.second) {
+                        is Boolean -> addField(it.first, it.second as Boolean)
+                        is String -> addField(it.first, it.second as String)
+                        is Long -> addField(it.first, it.second as Long)
+                    }
                 }
             }
             .build()

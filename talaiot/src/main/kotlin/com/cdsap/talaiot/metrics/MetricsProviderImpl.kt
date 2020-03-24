@@ -4,7 +4,7 @@ import com.cdsap.talaiot.entities.ExecutionReport
 
 class MetricsProviderImpl<T>(val report: ExecutionReport) : MetricsProvider {
 
-     fun createBuildPoint(): List<Pair<String, Any>> {
+     fun get(): List<Pair<String, Any>> {
         val metrics = mutableListOf<Pair<String, Any>>()
         val buildMeta = report.flattenBuildEnv()
         buildMeta.forEach { (k, v) ->
@@ -42,11 +42,5 @@ class MetricsProviderImpl<T>(val report: ExecutionReport) : MetricsProvider {
         report.requestedTasks?.let { metrics.add(Pair("requestedTasks", it)) }
         report.scanLink?.let { metrics.add(Pair("scanLink", it)) }
         return metrics
-    }
-
-    fun transform(func: (key: String, value: Any) -> T): List<T> {
-        return createBuildPoint().flatMap {
-            listOf(func(it.first, it.second))
-        }
     }
 }
