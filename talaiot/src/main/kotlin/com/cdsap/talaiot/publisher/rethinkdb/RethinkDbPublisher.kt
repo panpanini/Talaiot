@@ -174,7 +174,7 @@ class RethinkDbPublisher(
     }
 
     private fun createBuildEntry(report: ExecutionReport): List<Pair<String, Any>>? {
-        val metricsProvider = MetricsProviderImpl<Point>(report)
+        val metricsProvider = MetricsProviderImpl(report)
         return metricsProvider.get()
     }
 }

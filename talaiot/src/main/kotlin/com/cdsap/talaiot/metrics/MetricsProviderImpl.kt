@@ -2,7 +2,7 @@ package com.cdsap.talaiot.metrics
 
 import com.cdsap.talaiot.entities.ExecutionReport
 
-class MetricsProviderImpl<T>(val report: ExecutionReport) : MetricsProvider {
+class MetricsProviderImpl(val report: ExecutionReport) : MetricsProvider {
 
      fun get(): List<Pair<String, Any>> {
         val metrics = mutableListOf<Pair<String, Any>>()

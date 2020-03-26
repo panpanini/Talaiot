@@ -130,7 +130,7 @@ class InfluxDbPublisher(
     }
 
     private fun createBuildPoint(report: ExecutionReport): Point {
-        val metricsProvider = MetricsProviderImpl<Point>(report)
+        val metricsProvider = MetricsProviderImpl(report)
         return Point.measurement(influxDbPublisherConfiguration.buildMetricName)
             .time(report.endMs?.toLong() ?: System.currentTimeMillis(), TimeUnit.MILLISECONDS)
             .apply {

@@ -81,7 +81,7 @@ class ElasticSearchPublisher(
 
     private fun sendBuildMetrics(report: ExecutionReport, client: RestHighLevelClient) {
         val source = mutableMapOf<String, Any>()
-        val metrics = MetricsProviderImpl<Point>(report).get()
+        val metrics = MetricsProviderImpl(report).get()
         metrics.forEach {
             source[it.first] = it.second
         }
