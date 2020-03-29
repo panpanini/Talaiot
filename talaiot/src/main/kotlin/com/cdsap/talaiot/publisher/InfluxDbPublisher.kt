@@ -3,8 +3,8 @@ package com.cdsap.talaiot.publisher
 import com.cdsap.talaiot.configuration.InfluxDbPublisherConfiguration
 import com.cdsap.talaiot.entities.ExecutionReport
 import com.cdsap.talaiot.logger.LogTracker
-import com.cdsap.talaiot.metrics.MetricsProvider
-import com.cdsap.talaiot.metrics.MetricsProviderImpl
+import com.cdsap.talaiot.metrics.DefaultBuildMetricsProvider
+import com.cdsap.talaiot.metrics.DefaultTaskDataProvider
 import okhttp3.OkHttpClient
 import org.influxdb.InfluxDB
 import org.influxdb.InfluxDBException
@@ -33,7 +33,7 @@ class InfluxDbPublisher(
      * Executor to schedule a task in Background
      */
     private val executor: Executor
-) : Publisher, MetricsProvider {
+) : Publisher {
 
     private val TAG = "InfluxDbPublisher"
 
@@ -113,34 +113,18 @@ class InfluxDbPublisher(
         return report.tasks?.map { task ->
             Point.measurement(influxDbPublisherConfiguration.taskMetricName)
                 .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                .tag("state", task.state.name)
-                .tag("module", task.module)
-                .tag("rootNode", task.rootNode.toString())
-                .tag("task", task.taskPath)
-                .tag("workerId", task.workerId)
-                .tag("critical", task.critical.toString())
-                .apply {
-                    report.customProperties.taskProperties.forEach { (k, v) ->
-                        tag(k, v)
-                    }
-                }
+                .tag(DefaultTaskDataProvider(task).get().filter { it.key == "value" } as Map<String, String>)
                 .addField("value", task.ms)
                 .build()
         }
     }
 
     private fun createBuildPoint(report: ExecutionReport): Point {
-        val metricsProvider = MetricsProviderImpl(report)
+        val metricsProvider = DefaultBuildMetricsProvider(report)
         return Point.measurement(influxDbPublisherConfiguration.buildMetricName)
             .time(report.endMs?.toLong() ?: System.currentTimeMillis(), TimeUnit.MILLISECONDS)
             .apply {
-                metricsProvider.get().forEach {
-                    when (it.second) {
-                        is Boolean -> addField(it.first, it.second as Boolean)
-                        is String -> addField(it.first, it.second as String)
-                        is Long -> addField(it.first, it.second as Long)
-                    }
-                }
+                fields(metricsProvider.get())
             }
             .build()
     }

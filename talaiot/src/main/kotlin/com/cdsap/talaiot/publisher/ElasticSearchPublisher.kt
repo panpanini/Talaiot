@@ -3,13 +3,13 @@ package com.cdsap.talaiot.publisher
 import com.cdsap.talaiot.configuration.ElasticSearchPublisherConfiguration
 import com.cdsap.talaiot.entities.ExecutionReport
 import com.cdsap.talaiot.logger.LogTracker
-import com.cdsap.talaiot.metrics.MetricsProviderImpl
+import com.cdsap.talaiot.metrics.DefaultBuildMetricsProvider
+import com.cdsap.talaiot.metrics.DefaultTaskDataProvider
 import org.apache.http.HttpHost
 import org.elasticsearch.action.index.IndexRequest
 import org.elasticsearch.client.RequestOptions
 import org.elasticsearch.client.RestClient
 import org.elasticsearch.client.RestHighLevelClient
-import org.influxdb.dto.Point
 import java.net.URL
 import java.util.concurrent.Executor
 
@@ -80,13 +80,9 @@ class ElasticSearchPublisher(
     }
 
     private fun sendBuildMetrics(report: ExecutionReport, client: RestHighLevelClient) {
-        val source = mutableMapOf<String, Any>()
-        val metrics = MetricsProviderImpl(report).get()
-        metrics.forEach {
-            source[it.first] = it.second
-        }
+        val metrics = DefaultBuildMetricsProvider(report).get()
         val response = client.index(
-            IndexRequest(elasticSearchPublisherConfiguration.buildIndexName).source(source),
+            IndexRequest(elasticSearchPublisherConfiguration.buildIndexName).source(metrics),
             RequestOptions.DEFAULT
 
         )
@@ -102,21 +98,9 @@ class ElasticSearchPublisher(
             try {
                 val response = client.index(
                     IndexRequest(elasticSearchPublisherConfiguration.taskIndexName)
-                        .source(
-                            mapOf(
-                                "state" to it.state.name,
-                                "module" to it.module,
-                                "rootNode" to it.rootNode,
-                                "task" to it.taskPath,
-                                "workerId" to it.workerId,
-                                "critical" to it.critical,
-                                "value" to it.ms
-                            ) + report.customProperties.taskProperties
-                        )
-                    ,
-                    RequestOptions.DEFAULT
+                        .source(DefaultTaskDataProvider(it).get() +report.customProperties.taskProperties ), RequestOptions.DEFAULT
                 )
-                logTracker.log(TAG, "Result Task metrics ${response.toString()}")
+                logTracker.log(TAG, "Result Task metrics ${response}")
             } catch (e: java.lang.Exception) {
                 logTracker.error(e.message.toString())
             }

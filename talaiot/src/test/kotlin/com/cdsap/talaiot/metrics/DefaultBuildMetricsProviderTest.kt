@@ -1,22 +1,23 @@
 package com.cdsap.talaiot.metrics
 
-import com.cdsap.talaiot.configuration.MetricsConfiguration
 import com.cdsap.talaiot.entities.*
-import io.kotlintest.inspectors.forAtLeastOne
-import io.kotlintest.inspectors.forAtMostOne
+import io.kotlintest.matchers.maps.shouldContainKeys
 import io.kotlintest.specs.BehaviorSpec
+import junit.framework.Assert.assertTrue
 
-class MetricsProviderImplTest : BehaviorSpec({
-    given("Metrics Metrics Provider") {
-        `when`("defaults are used") {
-            val metrics = MetricsProviderImpl(executionReport()).get()
+class DefaultBuildMetricsProviderTest : BehaviorSpec({
+    given("DefaultBuildMetricsProvider instance") {
+        `when`("Environment defines cpuCount and maxWorkers metrics") {
+            val metrics = DefaultBuildMetricsProvider(executionReport()).get()
+            then("cpuCount and maxWorker exist and they have the proper type") {
+                assertTrue(metrics.filter {
+                    it.key == "cpuCount" && it.value == 12
+                }.count() == 1)
+                assertTrue(metrics.filter {
+                    it.key == "maxWorkers" && it.value == 4
+                }.count() == 1)
 
-            then("RootProject, GradleRequested and GradleVersion are included") {
-
-               assert (metrics.find {
-                   it.first == "cpuCount" && it.second == "12"
-               } != null)
-              }
+            }
         }
     }
 })

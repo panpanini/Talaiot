@@ -3,11 +3,11 @@ package com.cdsap.talaiot.publisher.rethinkdb
 import com.cdsap.talaiot.configuration.RethinkDbPublisherConfiguration
 import com.cdsap.talaiot.entities.*
 import com.cdsap.talaiot.logger.LogTracker
-import com.cdsap.talaiot.metrics.MetricsProviderImpl
+import com.cdsap.talaiot.metrics.DefaultBuildMetricsProvider
+import com.cdsap.talaiot.metrics.DefaultTaskDataProvider
 import com.cdsap.talaiot.publisher.Publisher
 import com.rethinkdb.RethinkDB
 import com.rethinkdb.net.Connection
-import org.influxdb.dto.Point
 import java.net.URL
 import java.util.concurrent.Executor
 
@@ -97,7 +97,7 @@ class RethinkDbPublisher(
                 }
 
                 if (rethinkDbPublisherConfiguration.publishBuildMetrics) {
-                    val entries = createBuildEntry(report)
+                    val entries = DefaultBuildMetricsProvider(report).get().toList()
                     if (entries != null && entries.isNotEmpty()) {
                         checkTable(
                             conn,
@@ -152,18 +152,11 @@ class RethinkDbPublisher(
             }
         }
         report.tasks?.forEach { task ->
-
-            list.add(Pair("state", task.state.name))
-            list.add(Pair("module", task.module))
-            list.add(Pair("time", System.currentTimeMillis()))
-            list.add(Pair("rootNode", task.rootNode.toString()))
-            list.add(Pair("task", task.taskPath))
-            list.add(Pair("workerId", task.workerId))
-            list.add(Pair("value", task.ms))
-            list.add(Pair("critical", task.critical.toString()))
-
-
+            list.addAll(DefaultTaskDataProvider(task).get().flatMap {
+                listOf(Pair(it.key, it.value))
+            })
         }
+
         return list
     }
 
@@ -171,10 +164,5 @@ class RethinkDbPublisher(
         return taskProperties.flatMap {
             listOf(mapOf(it.key to it.value))
         }
-    }
-
-    private fun createBuildEntry(report: ExecutionReport): List<Pair<String, Any>>? {
-        val metricsProvider = MetricsProviderImpl(report)
-        return metricsProvider.get()
     }
 }
