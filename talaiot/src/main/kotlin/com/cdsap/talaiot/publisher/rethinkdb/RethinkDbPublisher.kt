@@ -97,7 +97,7 @@ class RethinkDbPublisher(
                 }
 
                 if (rethinkDbPublisherConfiguration.publishBuildMetrics) {
-                    val entries = DefaultBuildMetricsProvider(report).get().toList()
+                    val entries = DefaultBuildMetricsProvider(report).get()
                     if (entries != null && entries.isNotEmpty()) {
                         checkTable(
                             conn,
@@ -123,7 +123,7 @@ class RethinkDbPublisher(
         conn: Connection,
         db: String,
         table: String,
-        entries: List<Pair<String, Any>>?
+        entries: Map<String, Any>?
     ) {
         r.db(db).table(table).insert(entries).run<Any>(conn)
     }
@@ -142,27 +142,12 @@ class RethinkDbPublisher(
         }
     }
 
-    private fun createTaskEntries(report: ExecutionReport): List<Pair<String, Any>> {
-        val taskCustomProperties = getCustomProperties(report.customProperties.taskProperties)
-
-        val list = mutableListOf<Pair<String, Any>>()
-        taskCustomProperties.forEach {
-            it.entries.forEach {
-                list.add(Pair(it.key, it.value))
-            }
-        }
+    private fun createTaskEntries(report: ExecutionReport): Map<String, Any> {
+        val list = mutableMapOf<String, Any>()
+        list.putAll(report.customProperties.taskProperties)
         report.tasks?.forEach { task ->
-            list.addAll(DefaultTaskDataProvider(task).get().flatMap {
-                listOf(Pair(it.key, it.value))
-            })
+            list.putAll(DefaultTaskDataProvider(task).get())
         }
-
         return list
-    }
-
-    private fun getCustomProperties(taskProperties: MutableMap<String, String>): List<Map<String, Any>> {
-        return taskProperties.flatMap {
-            listOf(mapOf(it.key to it.value))
-        }
     }
 }
