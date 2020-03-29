@@ -113,7 +113,8 @@ class InfluxDbPublisher(
         return report.tasks?.map { task ->
             Point.measurement(influxDbPublisherConfiguration.taskMetricName)
                 .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                .tag(DefaultTaskDataProvider(task).get().filter { it.key == "value" } as Map<String, String>)
+                .tag(report.customProperties.taskProperties)
+                .tag(DefaultTaskDataProvider(task).get().filter { it.key != "value" } as Map<String, String>)
                 .addField("value", task.ms)
                 .build()
         }
@@ -134,7 +135,7 @@ class InfluxDbPublisher(
             .connectTimeout(TIMEOUT_SEC, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SEC, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_SEC, TimeUnit.SECONDS)
-
+println("skskskkskskskskskksksks")
         val user = influxDbPublisherConfiguration.username
         val password = influxDbPublisherConfiguration.password
         val url = influxDbPublisherConfiguration.url

@@ -12,12 +12,14 @@ import com.cdsap.talaiot.publisher.graphpublisher.KInfluxDBContainer
 import io.kotlintest.Spec
 import io.kotlintest.specs.BehaviorSpec
 import org.influxdb.dto.Query
+import java.util.concurrent.Executors
 
 
 class InfluxDbPublisherTest : BehaviorSpec() {
 
     val database = "talaiot"
     val container = KInfluxDBContainer().withAuthEnabled(false)
+
     override fun beforeSpec(spec: Spec) {
         super.beforeSpec(spec)
         container.start()
