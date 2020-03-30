@@ -73,7 +73,6 @@ class InfluxDbPublisher(
             if (influxDbPublisherConfiguration.publishBuildMetrics) {
                 val buildMeasurement = createBuildPoint(report)
                 pointsBuilder.point(buildMeasurement)
-
             }
 
             executor.execute {
@@ -89,6 +88,7 @@ class InfluxDbPublisher(
                     logTracker.log(TAG, "Sending points to InfluxDb server ${points.toString()}")
                     _db.write(points)
                 } catch (e: Exception) {
+                    println(e.message)
                     logTracker.log(TAG, "InfluxDbPublisher-Error-Executor Runnable: ${e.message}")
 
                 }
@@ -124,9 +124,8 @@ class InfluxDbPublisher(
         val metricsProvider = DefaultBuildMetricsProvider(report)
         return Point.measurement(influxDbPublisherConfiguration.buildMetricName)
             .time(report.endMs?.toLong() ?: System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-            .apply {
-                fields(metricsProvider.get())
-            }
+            .tag(report.flattenBuildEnv())
+            .fields(metricsProvider.get())
             .build()
     }
 
@@ -135,7 +134,6 @@ class InfluxDbPublisher(
             .connectTimeout(TIMEOUT_SEC, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SEC, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_SEC, TimeUnit.SECONDS)
-println("skskskkskskskskskksksks")
         val user = influxDbPublisherConfiguration.username
         val password = influxDbPublisherConfiguration.password
         val url = influxDbPublisherConfiguration.url

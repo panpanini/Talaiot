@@ -8,12 +8,9 @@ class DefaultBuildMetricsProvider(
 
     override fun get(): Map<String, Any> {
         val metrics = mutableMapOf<String, Any>()
-        metrics.putAll(report.flattenBuildEnv())
-        metrics.putAll(report.customProperties.buildProperties)
-
-        metrics["duration"] to report.durationMs?.toLong() ?: 0L
-        metrics["configuration"] to report.configurationDurationMs?.toLong() ?: 0L
-        metrics["success"] to report.success
+        metrics["duration"] = report.durationMs?.toLong() ?: 0L
+        metrics["configuration"] = report.configurationDurationMs?.toLong() ?: 0L
+        metrics["success"] = report.success
         report.environment.osVersion?.let { metrics["osVersion"] = it }
         report.environment.maxWorkers?.let { metrics["maxWorkers"] = it.toInt() }
         report.environment.javaRuntime?.let { metrics["javaRuntime"] = it }
