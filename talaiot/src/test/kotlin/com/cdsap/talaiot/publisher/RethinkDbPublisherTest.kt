@@ -44,7 +44,6 @@ class RethinkDbPublisherTest : BehaviorSpec() {
         given("RethinkDb Publisher instance") {
             val logger = TestLogTrackerRecorder
 
-
             `when`("Publisher is sent ") {
                 val rethinkDbConfiguration = getBasicRethinkDbConf()
                 val rethinkDb = RethinkDbPublisher(
