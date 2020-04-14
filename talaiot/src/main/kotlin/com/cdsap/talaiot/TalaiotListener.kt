@@ -43,7 +43,7 @@ class TalaiotListener(
     private val extension: TalaiotExtension
 ) : BuildListener, TaskExecutionListener {
 
-    private val talaiotTracker = TalaiotTracker()
+    private val talaiotTracker = TalaiotTracker(LogTrackerImpl(extension.logger))
     private var start: Long = 0L
     private var configurationEnd: Long? = null
 

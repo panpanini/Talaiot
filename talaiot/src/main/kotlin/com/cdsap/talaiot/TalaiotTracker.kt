@@ -3,6 +3,7 @@ package com.cdsap.talaiot
 import com.cdsap.talaiot.entities.NodeArgument
 import com.cdsap.talaiot.entities.TaskLength
 import com.cdsap.talaiot.entities.TaskMessageState
+import com.cdsap.talaiot.logger.LogTracker
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.TaskDependencyResolveException
 import org.gradle.api.tasks.TaskState
@@ -12,7 +13,7 @@ import java.util.*
  * Tracker of executed tasks during the build
  * It tracks duration, name, path, dependencies, task state and invoke mode(rootNode)
  */
-class TalaiotTracker {
+class TalaiotTracker(val logger: LogTracker) {
     /**
      * List of tasks executed during the build and tracked
      */
@@ -157,6 +158,7 @@ class TalaiotTracker {
         return try {
             task.taskDependencies.getDependencies(task).map { it.path }
         } catch (e: TaskDependencyResolveException) {
+            logger.log("Talaiot", "unable to find dependencies for task ${task.name}")
             listOf()
         }
     }
