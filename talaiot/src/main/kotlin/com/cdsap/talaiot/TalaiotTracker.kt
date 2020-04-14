@@ -4,6 +4,7 @@ import com.cdsap.talaiot.entities.NodeArgument
 import com.cdsap.talaiot.entities.TaskLength
 import com.cdsap.talaiot.entities.TaskMessageState
 import org.gradle.api.Task
+import org.gradle.api.internal.tasks.TaskDependencyResolveException
 import org.gradle.api.tasks.TaskState
 import java.util.*
 
@@ -152,7 +153,13 @@ class TalaiotTracker {
      *
      * @return list of task paths depending of the given task
      */
-    private fun taskDependencies(task: Task) = task.taskDependencies.getDependencies(task).map { it.path }
+    private fun taskDependencies(task: Task): List<String> {
+        return try {
+            task.taskDependencies.getDependencies(task).map { it.path }
+        } catch (e: TaskDependencyResolveException) {
+            listOf()
+        }
+    }
 
     /**
      * Get the current module of a given task
