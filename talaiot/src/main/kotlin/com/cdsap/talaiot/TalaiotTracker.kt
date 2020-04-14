@@ -159,7 +159,7 @@ class TalaiotTracker(val logger: LogTracker) {
             task.taskDependencies.getDependencies(task).map { it.path }
         } catch (e: TaskDependencyResolveException) {
             logger.log("Talaiot", "unable to find dependencies for task ${task.name}")
-            listOf()
+            listOf(task.name)
         }
     }
 
